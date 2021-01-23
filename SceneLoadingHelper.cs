@@ -7,7 +7,7 @@ namespace Grigorov.Unity.SceneManagement {
 		public static SceneWrapper StartLoadingScene(string sceneName, LoadingUI loadingUI) {
 			loadingUI.Show();
 			_targetSceneHandler.LoadSceneAsync(sceneName)
-				.AddLoadingAction(progress => loadingUI.UpdateBar(progress))
+				.AddLoadingAction(loadingUI.UpdateBar)
 				.AddLoadedAction(scene => loadingUI.Hide());
 
 			return _targetSceneHandler;

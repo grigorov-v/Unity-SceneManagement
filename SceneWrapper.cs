@@ -7,12 +7,11 @@ using UnityEngine.SceneManagement;
 
 namespace Grigorov.Unity.SceneManagement {
 	public class SceneWrapper {
-		AsyncOperation _asyncOperation;
-
-		readonly List<Action<Scene>> _loadedActions = new List<Action<Scene>>();
+		readonly List<Action<Scene>> _loadedActions  = new List<Action<Scene>>();
 		readonly List<Action<float>> _loadingActions = new List<Action<float>>();
-		string _sceneName;
-		readonly List<Action<Scene>> _unloadedActions = new List<Action<Scene>>();
+
+		string         _sceneName;
+		AsyncOperation _asyncOperation;
 
 		public SceneWrapper LoadSceneAsync(string sceneName, LoadSceneMode loadSceneMode = LoadSceneMode.Single) {
 			_sceneName = sceneName;
@@ -20,40 +19,15 @@ namespace Grigorov.Unity.SceneManagement {
 			return this;
 		}
 
-		public SceneWrapper LoadScene(string sceneName, LoadSceneMode loadSceneMode = LoadSceneMode.Single) {
-			_sceneName = sceneName;
-			SceneManager.LoadScene(_sceneName, loadSceneMode);
-			return this;
-		}
-
-		public SceneWrapper UnloadScene(string sceneName) {
-			_sceneName = sceneName;
-			SceneManager.UnloadSceneAsync(_sceneName);
-			Debug.Log("UnloadScene " + _sceneName);
-			return this;
-		}
-
-		public SceneWrapper UnloadScene() {
-			return UnloadScene(_sceneName);
-		}
-
-		public SceneWrapper AddLoadedAction(Action<Scene> action) {
+		public void AddLoadedAction(Action<Scene> action) {
 			_loadedActions.AddIfNotExists(action);
 			SceneManager.sceneLoaded -= OnSceneLoaded;
 			SceneManager.sceneLoaded += OnSceneLoaded;
-			return this;
 		}
 
 		public SceneWrapper AddLoadingAction(Action<float> action) {
 			_loadingActions.AddIfNotExists(action);
 			ShellCoroutine.Instance.StartCoroutine(LoadingCoroutine());
-			return this;
-		}
-
-		public SceneWrapper AddUnloadedAction(Action<Scene> action) {
-			_unloadedActions.AddIfNotExists(action);
-			SceneManager.sceneUnloaded -= OnSceneUnloaded;
-			SceneManager.sceneUnloaded += OnSceneUnloaded;
 			return this;
 		}
 
@@ -75,16 +49,6 @@ namespace Grigorov.Unity.SceneManagement {
 			_loadedActions.ForEach(action => action?.Invoke(scene));
 			SceneManager.sceneLoaded -= OnSceneLoaded;
 			_loadedActions.Clear();
-		}
-
-		void OnSceneUnloaded(Scene scene) {
-			if ( scene.name != _sceneName ) {
-				return;
-			}
-
-			_unloadedActions.ForEach(action => action?.Invoke(scene));
-			SceneManager.sceneUnloaded -= OnSceneUnloaded;
-			_unloadedActions.Clear();
 		}
 	}
 }
